@@ -3,8 +3,6 @@
 #' @param prompt The prompt to generate completions for.
 #' @param openai_api_key OpenAI's API key.
 #'
-#' @importFrom httr add_headers content content_type_json POST
-#' @importFrom jsonlite toJSON
 #'
 gpt_get_completions <- function(prompt, openai_api_key = config::get()$chatgpt) {
   if (nchar(openai_api_key) == 0) {
