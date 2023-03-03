@@ -19,6 +19,7 @@ run_addin <- function(addin_name) {
   )
   # Get the selected code.
   doc_context <- getActiveDocumentContext()
+
   selected_code <- doc_context$selection[[1]]$text
   is_full_file <- all(nchar(selected_code) == 0)
   # If no code is selected, use the whole file.
@@ -28,16 +29,17 @@ run_addin <- function(addin_name) {
   selected_code <- paste0(selected_code, collapse = "\n")
   # Apply the addin function.
   out <- addin_function(selected_code)
-  if (as.logical(Sys.getenv("OPENAI_ADDIN_REPLACE", FALSE))) {
+  if (addin_name %in% c("comment_code", "optimize_code", "refactor_code")) {
     doc_range <- doc_context$selection[[1]]$range
     if (is_full_file) {
       doc_range <- as.document_range(c(c(0, 0), c(Inf, Inf)))
     }
     modifyRange(doc_range, out, doc_context$id)
-  } else if (as.logical(Sys.getenv("OPENAI_VERBOSE", TRUE))) {
-    cat(paste0("\n*** ChatGPT output:\n\n", out, "\n"))
+  } else if (addin_name %in% c("create_variable_name", "explain_code", "find_issues_in_code", "create_unit_tests")) {
+    message("\noutput written to clipboard")
+    clipr::write_clip(out)
   } else {
-    warning("Please set one of `OPENAI_ADDIN_REPLACE=TRUE` or `OPENAI_VERBOSE=TRUE`")
+    warning("function for ", addin_name, " not found")
   }
   invisible(NULL)
 }
