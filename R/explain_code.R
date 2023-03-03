@@ -13,5 +13,28 @@
 #'
 explain_code <- function(code) {
   prompt <- paste0('Explain the following R code: "', code, '"')
-  trimws(sapply(gpt_get_completions(prompt)$choices, function(x) x$text))
+  # Get completions from ChatGPT
+  response <- gpt_get_completions(prompt)
+
+  # For each choice in the completions, split the code line by line
+  to_cat <- sapply(response["choices"], \(x) {
+    new = strsplit(x[["text"]], "\n")[[1]]
+    old = strsplit(code, "\n")[[1]]
+
+    # Identify which lines are new and recolor them
+    recolor_ind <- which(!new %in% old)
+    new[recolor_ind] <- cli::col_green(new[recolor_ind])
+    paste(new, collapse = "\n")
+  })
+
+  # Create a string of the completions
+  to_string <- sapply(response["choices"], \(x) {
+    x[["text"]]
+  })
+
+  # print to console the colorized lines
+  cat(cli::col_green("*** ChatGPT output:"), to_cat)
+
+  # return the string itself
+  invisible(to_string)
 }
